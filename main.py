@@ -8,18 +8,16 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from tqdm import tqdm
 
-
 # ----------------------------
 # Load environment variables
 # ----------------------------
 load_dotenv()
 
-AGORA_SITE = os.getenv("AGORA_CB_SITE")
-AGORA_KEY = os.getenv("AGORA_CB_API_KEY")
+ENTITY1_SITE = os.getenv("ENTITY1_CB_SITE")
+ENTITY1_KEY = os.getenv("ENTITY1_CB_API_KEY")
 
-MENTION_SITE = os.getenv("MENTION_CB_SITE")
-MENTION_KEY = os.getenv("MENTION_CB_API_KEY")
-
+ENTITY2_SITE = os.getenv("ENTITY2_CB_SITE")
+ENTITY2_KEY = os.getenv("ENTITY2_CB_API_KEY")
 
 # ----------------------------
 # SETTINGS
@@ -28,19 +26,16 @@ TEST_MODE = False
 MAX_WORKERS = 10
 MAX_RETRIES = 3
 
-
 # ----------------------------
 # Locks
 # ----------------------------
 cache_lock = Lock()
 counter_lock = Lock()
 
-
 # ----------------------------
 # API counter
 # ----------------------------
 api_call_count = 0
-
 
 # ----------------------------
 # Safe API Request
@@ -82,11 +77,11 @@ def safe_request(url, key):
 # ----------------------------
 def get_credentials(entity):
 
-    if entity == "Agorapulse":
-        return AGORA_SITE, AGORA_KEY
+    if entity == "Entity1":
+        return ENTITY1_SITE, ENTITY1_KEY
 
-    if entity == "Mention":
-        return MENTION_SITE, MENTION_KEY
+    if entity == "Entity2":
+        return ENTITY2_SITE, ENTITY2_KEY
 
     return None, None
 
@@ -137,7 +132,7 @@ def fetch_subscription(entity, subscription_id):
 
 
 # ----------------------------
-# Fetch customer subscriptions (fallback)
+# Fetch customer subscriptions
 # ----------------------------
 def fetch_customer_subscriptions(entity, customer_id):
 
@@ -158,7 +153,6 @@ def fetch_customer_subscriptions(entity, customer_id):
     if not subs:
         return None
 
-    # prefer active subscription
     for s in subs:
 
         sub = s.get("subscription", {})
@@ -174,7 +168,6 @@ def fetch_customer_subscriptions(entity, customer_id):
 # ----------------------------
 subscription_cache = {}
 customer_subscription_cache = {}
-
 
 # ----------------------------
 # Load Xero file
@@ -200,7 +193,6 @@ df.columns = [str(c).strip() for c in df.columns]
 
 print("Columns detected:", df.columns.tolist())
 
-
 # ----------------------------
 # Required columns
 # ----------------------------
@@ -221,13 +213,11 @@ ALLOWED_COLS = [
 
 df = df[[c for c in ALLOWED_COLS if c in df.columns]]
 
-
 # ----------------------------
 # Remove footer
 # ----------------------------
 df = df[df["Invoice Number"].notna()]
 df = df[df["Invoice Number"].astype(str).str.strip() != ""]
-
 
 # ----------------------------
 # Normalize
@@ -243,7 +233,6 @@ df[config.COL_DUE_DATE] = pd.to_datetime(
     df[config.COL_DUE_DATE],
     errors="coerce"
 )
-
 
 # ----------------------------
 # Classify entity
@@ -261,7 +250,6 @@ for inv in df[config.COL_INVOICE_NO]:
 df["Entity"] = entities
 df["Doc Type"] = doc_types
 
-
 # ----------------------------
 # Worker
 # ----------------------------
@@ -273,7 +261,6 @@ def process_row(row):
 
     if doc_type not in ["Invoice", "Credit Note"]:
         return None, None, None
-
 
     if doc_type == "Invoice":
         data = fetch_invoice(entity, invoice_id)
@@ -290,9 +277,6 @@ def process_row(row):
     subscription_id = obj.get("subscription_id")
     customer_id = obj.get("customer_id")
 
-    # ------------------
-    # Case 1: subscription exists
-    # ------------------
     if subscription_id:
 
         with cache_lock:
@@ -313,10 +297,6 @@ def process_row(row):
 
         return payment_status, sub_obj.get("status"), sub_obj.get("cancelled_at")
 
-
-    # ------------------
-    # Case 2: fallback to customer
-    # ------------------
     if customer_id:
 
         with cache_lock:
@@ -340,22 +320,12 @@ def process_row(row):
 
 
 # ----------------------------
-# Select rows
+# Process rows
 # ----------------------------
-if TEST_MODE:
-    df_process = df.head(TEST_LIMIT)
-else:
-    df_process = df
-
-
-rows = [row for _, row in df_process.iterrows()]
+rows = [row for _, row in df.iterrows()]
 
 print(f"\nProcessing {len(rows)} invoices...\n")
 
-
-# ----------------------------
-# Parallel execution
-# ----------------------------
 with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
 
     results = list(
@@ -366,10 +336,6 @@ with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         )
     )
 
-
-# ----------------------------
-# Assign results
-# ----------------------------
 payments = []
 subs = []
 cancels = []
@@ -380,10 +346,9 @@ for p, s, c in results:
     subs.append(s)
     cancels.append(c)
 
-df.loc[df_process.index, "CB Payment Status"] = payments
-df.loc[df_process.index, "CB Subscription Status"] = subs
-df.loc[df_process.index, "CB Cancellation Date"] = cancels
-
+df["CB Payment Status"] = payments
+df["CB Subscription Status"] = subs
+df["CB Cancellation Date"] = cancels
 
 # ----------------------------
 # Aging calculation
@@ -411,7 +376,6 @@ def aging_bucket(due_date, payment_status):
 
     return "90+"
 
-
 df["Aging Bucket"] = df.apply(
     lambda row: aging_bucket(
         row[config.COL_DUE_DATE],
@@ -419,34 +383,6 @@ df["Aging Bucket"] = df.apply(
     ),
     axis=1
 )
-
-
-# ----------------------------
-# Data issues
-# ----------------------------
-df["Data Issue"] = ""
-
-df.loc[df[config.COL_DUE_DATE].isna(), "Data Issue"] = "Missing Due Date"
-
-df.loc[
-    (df["Doc Type"] == "Invoice") &
-    (df[config.COL_TOTAL] <= 0),
-    "Data Issue"
-] = "Zero or Negative Invoice Balance"
-
-
-# ----------------------------
-# Split outputs
-# ----------------------------
-ap_inv = df[(df["Entity"] == "Agorapulse") & (df["Doc Type"] == "Invoice")]
-ap_cn = df[(df["Entity"] == "Agorapulse") & (df["Doc Type"] == "Credit Note")]
-
-mn_inv = df[(df["Entity"] == "Mention") & (df["Doc Type"] == "Invoice")]
-mn_cn = df[(df["Entity"] == "Mention") & (df["Doc Type"] == "Credit Note")]
-
-manual = df[df["Entity"] == "Manual"]
-issues = df[df["Data Issue"] != ""]
-
 
 # ----------------------------
 # Summary
@@ -458,7 +394,6 @@ summary = (
     .reset_index()
 )
 
-
 # ----------------------------
 # Write Excel
 # ----------------------------
@@ -466,15 +401,8 @@ with pd.ExcelWriter(config.OUTPUT_FILE, engine="xlsxwriter") as writer:
 
     summary.to_excel(writer, sheet_name="Summary", index=False)
 
-    ap_inv.to_excel(writer, sheet_name="Agorapulse – Invoices", index=False)
-    ap_cn.to_excel(writer, sheet_name="Agorapulse – Credit Notes", index=False)
-
-    mn_inv.to_excel(writer, sheet_name="Mention – Invoices", index=False)
-    mn_cn.to_excel(writer, sheet_name="Mention – Credit Notes", index=False)
-
-    manual.to_excel(writer, sheet_name="Manual", index=False)
-    issues.to_excel(writer, sheet_name="Data Issues", index=False)
-
+    df[df["Entity"] == "Entity1"].to_excel(writer, sheet_name="Entity1", index=False)
+    df[df["Entity"] == "Entity2"].to_excel(writer, sheet_name="Entity2", index=False)
 
 print("\nAR_Aging_Report.xlsx created successfully")
 print(f"Total Chargebee API calls made: {api_call_count}")

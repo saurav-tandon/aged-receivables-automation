@@ -1,10 +1,10 @@
 from datetime import datetime
 
 # --- FILES ---
-INPUT_FILE = "sample aged for chatgpt.xlsx"
+INPUT_FILE = "sample_ar_aging.xlsx"
 OUTPUT_FILE = "AR_Aging_Report.xlsx"
 
-# --- COLUMN NAMES (from your sheet) ---
+# --- COLUMN NAMES ---
 COL_INVOICE_NO = "Invoice Number"
 COL_CONTACT = "Contact"
 COL_INVOICE_DATE = "Invoice Date"
@@ -22,35 +22,33 @@ AGING_BUCKETS = [
 
 # --- ENTITY CLASSIFICATION RULES ---
 def classify_entity_and_type(invoice_no: str):
+
     s = str(invoice_no).strip()
 
     # -------- Credit Notes --------
     if s.startswith("CN-"):
+
         digits = s.replace("CN-", "").strip()
 
-        # Agorapulse CNs are long date-style numbers (6+ digits)
         if digits.isdigit() and len(digits) >= 6:
-            return "Agorapulse", "Credit Note"
+            return "Entity1", "Credit Note"
 
-        # Mention CNs are short numbers (usually 4 digits)
         if digits.isdigit() and len(digits) <= 5:
-            return "Mention", "Credit Note"
+            return "Entity2", "Credit Note"
 
         return "Unknown", "Credit Note"
 
     # -------- Invoices --------
     if s.startswith("INV-"):
-        return "Agorapulse", "Invoice"
+        return "Entity1", "Invoice"
 
     if s.isdigit():
+
         n = int(s)
 
-        # Manual invoices are small numbers
         if n < 100000:
             return "Manual", "Invoice"
 
-        # Mention invoices are large numeric IDs
-        return "Mention", "Invoice"
+        return "Entity2", "Invoice"
 
     return "Unknown", "Unknown"
-
