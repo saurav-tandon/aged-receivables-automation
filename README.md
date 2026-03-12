@@ -115,3 +115,7 @@ The workflow:
 Saurav Tandon\
 Accounts Receivable & Revenue Operations Specialist\
 10+ years experience in SaaS finance operations
+
+Note:
+All company names, identifiers, and billing data used in this repository have been anonymized.
+This project demonstrates automation techniques for SaaS finance workflows.
