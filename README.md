@@ -1,121 +1,169 @@
-# Aged Receivables Automation (Chargebee + Xero)
+Aged Receivables Automation (Chargebee + Xero)
+Overview
 
-## Overview
+This project automates the analysis of aged receivables for SaaS finance teams by processing invoice data and identifying overdue balances.
 
-This project automates the analysis of aged receivables for a SaaS
-company by processing invoice data and identifying overdue balances. The
-script helps finance teams quickly identify outstanding invoices and
-categorize them into aging buckets (0--30, 31--60, 61--90, 90+ days).
+The script integrates with the Chargebee API and processes exported Xero AR aging reports to automatically classify invoices into aging buckets.
 
-The automation reduces manual effort previously required to check
-hundreds of invoices across billing and accounting systems.
+Instead of manually checking hundreds of invoices, finance teams can generate a structured aging report automatically.
 
-------------------------------------------------------------------------
+Business Problem
 
-## Business Problem
+In SaaS finance operations, reviewing aged receivables manually can be extremely time-consuming.
 
-In SaaS finance operations, reviewing aged receivables manually can be
-time‑consuming.\
 Finance teams often need to:
 
--   Check hundreds of invoices individually
--   Identify overdue balances
--   Track credit notes affecting invoice balances
--   Prepare aging reports for finance leadership
+Check hundreds of invoices individually
 
-Manual processes increase the risk of: - Missed overdue invoices -
-Incorrect outstanding balances - Time lost on repetitive checks
+Identify overdue balances
 
-------------------------------------------------------------------------
+Track credit notes affecting invoice balances
 
-## Solution
+Verify subscription status from billing systems
 
-This automation script processes invoice data and generates an aged
-receivables report automatically.
+Prepare AR aging summaries for finance leadership
 
-The workflow:
+Manual processes increase the risk of:
 
-1.  Load invoice data
-2.  Adjust balances based on credit notes
-3.  Calculate overdue days
-4.  Classify invoices into aging buckets
-5.  Generate a structured AR report
+Missed overdue invoices
 
-------------------------------------------------------------------------
+Incorrect outstanding balances
 
-## Key Features
+Repetitive manual work
 
--   Automated aging bucket classification
--   Outstanding balance calculation
--   Credit note adjustment support
--   Bulk invoice processing
--   Structured report generation
+Delays in AR reporting
 
-------------------------------------------------------------------------
+Solution
 
-## Aging Buckets
+This automation script processes AR data and enriches it with Chargebee billing data.
 
-  Days Overdue   Category
-  -------------- ---------------
-  0--30 days     Current
-  31--60 days    Moderate Risk
-  61--90 days    High Risk
-  90+ days       Critical
+Workflow:
 
-------------------------------------------------------------------------
+Xero AR Aging Report
+        │
+        ▼
+Python Processing Script
+        │
+        ▼
+Chargebee API
+        │
+        ▼
+Invoice + Subscription Data
+        │
+        ▼
+Aging Bucket Classification
+        │
+        ▼
+Automated AR Aging Report
 
-## Example Output
+The result is a clean AR aging report with subscription insights and payment status.
 
-  Invoice ID   Customer    Amount   Days Overdue   Aging Bucket
-  ------------ ----------- -------- -------------- --------------
-  INV001       ABC Ltd     €1200    15             0‑30
-  INV002       XYZ Ltd     €980     45             31‑60
-  INV003       Demo Corp   €450     95             90+
+Key Features
 
-------------------------------------------------------------------------
+Automated aging bucket classification
 
-## Tech Stack
+Chargebee API integration
 
--   Python
--   Pandas
--   REST API integration
--   CSV / Excel reporting
+Invoice and credit note handling
 
-------------------------------------------------------------------------
+Subscription status enrichment
 
-## Project Structure
+Parallel API processing for speed
 
-    aged-receivables-automation
-    │
-    ├── main.py
-    ├── config.py
-    ├── calculate_aging.py
-    │
-    ├── sample_data
-    │   └── invoices_sample.csv
-    │
-    ├── output
-    │   └── aged_receivables_report.csv
-    │
-    ├── README.md
-    └── requirements.txt
+Built-in retry and rate-limit handling
 
-------------------------------------------------------------------------
+Structured AR aging report generation
 
-## Impact
+Aging Buckets
+Days Overdue	Category
+0–30 days	Current
+31–60 days	Moderate Risk
+61–90 days	High Risk
+90+ days	Critical
+Example Output
+Invoice ID	Customer	Amount	Days Overdue	Aging Bucket
+INV001	ABC Ltd	€1200	15	Current
+INV002	XYZ Ltd	€980	45	31–60
+INV003	Demo Corp	€450	95	90+
+Tech Stack
 
--   Reduced manual AR analysis time significantly
--   Automated processing of hundreds of invoices
--   Improved visibility of overdue receivables
+Python
 
-------------------------------------------------------------------------
+Pandas
 
-## Author
+REST API (Chargebee)
 
-Saurav Tandon\
-Accounts Receivable & Revenue Operations Specialist\
+Excel / CSV data processing
+
+Multithreading (ThreadPoolExecutor)
+
+Project Structure
+aged-receivables-automation
+│
+├── main.py
+├── config.py
+├── chargebee_client.py
+│
+├── sample_data
+│   └── invoices_sample.csv
+│
+├── requirements.txt
+├── README.md
+└── .gitignore
+How to Run
+1️⃣ Install dependencies
+pip install -r requirements.txt
+2️⃣ Create .env file
+
+Example configuration:
+
+ENTITY1_CB_SITE=example-site
+ENTITY1_CB_API_KEY=your_api_key
+
+ENTITY2_CB_SITE=example-site2
+ENTITY2_CB_API_KEY=your_api_key
+3️⃣ Run the script
+python main.py
+
+The script will generate an automated AR aging report.
+
+Impact
+
+This automation can:
+
+Reduce manual AR analysis time significantly
+
+Process hundreds of invoices automatically
+
+Improve visibility of overdue receivables
+
+Support finance teams with faster AR reporting
+
+Services
+
+I build automation tools for SaaS finance and revenue operations teams, including:
+
+Billing reconciliation automation
+
+Chargebee / Stripe API integrations
+
+Accounts receivable reporting automation
+
+Revenue operations workflow automation
+
+Finance data processing scripts
+
+Security & Confidentiality
+
+All company names, identifiers, and billing data used in this repository have been anonymized for confidentiality.
+
+This project demonstrates automation techniques for SaaS finance workflows without exposing any proprietary or sensitive company information.
+
+Author
+
+Saurav Tandon
+Accounts Receivable & Revenue Operations Specialist
+
 10+ years experience in SaaS finance operations
 
-Note:
-All company names, identifiers, and billing data used in this repository have been anonymized.
-This project demonstrates automation techniques for SaaS finance workflows.
+Specializing in billing automation and finance workflows
