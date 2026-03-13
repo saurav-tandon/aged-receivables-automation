@@ -65,6 +65,12 @@ payment status.**
 
 ------------------------------------------------------------------------
 
+## Sample Output
+
+![AR Aging Report](docs/sample_output.png)
+
+---------------------------------------------------------------------------
+
 # Key Features
 
 -   Automated aging bucket classification
