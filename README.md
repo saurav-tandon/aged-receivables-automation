@@ -35,6 +35,14 @@ Manual processes increase the risk of:
 -   Delays in AR reporting
 
 ------------------------------------------------------------------------
+## Business Value
+
+This automation helps finance teams:
+
+• Reduce manual invoice analysis time  
+• Process hundreds of invoices automatically  
+• Identify overdue receivables faster  
+• Improve AR reporting accuracy  
 
 # Solution
 
