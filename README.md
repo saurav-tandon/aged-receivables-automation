@@ -155,7 +155,7 @@ python main.py
 * 📊 Processes **hundreds of invoices automatically**
 * 🎯 Improves accuracy and visibility of overdue receivables
 * ⚡ Enables faster decision-making for finance teams
-
+* 🔄 Reduced manual errors in AR reporting
 ---
 
 ## 🔐 Security & Confidentiality
