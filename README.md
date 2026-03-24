@@ -92,7 +92,7 @@ Automated AR Aging Report
 
 ## 📸 Output Preview
 
-![AR Report](output/Sample_output.png)
+![AR Report](output/Sample-output.png)
 
 
 ## 🛠 Tech Stack
