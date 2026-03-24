@@ -90,6 +90,11 @@ Automated AR Aging Report
 
 ---
 
+## 📸 Output Preview
+
+![AR Report](output/Sample_output.png)
+
+
 ## 🛠 Tech Stack
 
 * Python
