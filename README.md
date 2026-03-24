@@ -164,7 +164,7 @@ This repository demonstrates **real-world SaaS finance automation workflows** wi
 ## 👨‍💼 About Me
 
 **Saurav Tandon**
-Accounts Receivable & Revenue Operations Specialist
+SaaS Finance Automation Specialist (Chargebee | Xero | AR Reconciliation)
 
 * 10+ years in SaaS finance (Chargebee, Xero)
 * Expertise in invoice reconciliation & AR automation
